@@ -1,5 +1,4 @@
-# Example Site for Hugo Initio Theme
+# This space is used for testing various projects that require github synchronisation.
 
-Example Site for Hugo Initio Theme
+It is expected for this repository's contents to be very unstable with files being modidied and deleted frequently.
 
-https://github.com/miguelsimoni/hugo-initio
