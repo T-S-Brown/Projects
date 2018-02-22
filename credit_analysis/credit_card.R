@@ -2,12 +2,15 @@
 # Credit Card Fraud Detection
 # Thomas Brown
 #------------------------------#
-
+  
 library(tidyverse)
 library(caret)
 
+set.seed(8589)
+
 # Load into memory the source dataset from kaggles
 source <- read_csv("/Users/Thomas/Downloads/creditcard.csv")
+
 
 # Preview the data
 head(source)
@@ -20,11 +23,20 @@ data_index <- createDataPartition(source$Class, p = 0.8,
 train <- source[data_index,]
 test <- source[-data_index,]
 
+rm(source)
+
+
+# Data Preprocessing
+
+
 
 #---------------------------------------#
 # Stage 1: Exploratory Data Analysis
 #---------------------------------------#
 
+# Descriptive Statistics
+
+descriptives <- summarise_all(train, sd)
 
 # Check class balance
 
@@ -43,8 +55,13 @@ test <- source[-data_index,]
 
 tc <- trainControl("cv", 5, savePredictions = TRUE)
 
+
 fit <- train(as.factor(Class) ~.,
              data      = train    ,
              method    = "glm"    ,
              family    = binomial ,
-             trControl = tc)
+             trControl = tc,
+             na.action = na.omit)
+
+results <- round(summary(fit)$coefficients, 3)
+
