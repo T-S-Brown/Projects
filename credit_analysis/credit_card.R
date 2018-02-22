@@ -120,3 +120,9 @@ results <- round(summary(fit)$coefficients, 3)
 # Model 2: Random Forest --------------------------------------------------
 
 
+# Model 3: Support Vector Machine -----------------------------------------
+
+
+# Model 4: Gradient Boosting ----------------------------------------------
+
+
