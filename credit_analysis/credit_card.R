@@ -90,7 +90,7 @@ exploratory_plot + ylim(0, 1)
 #---------------------------------------#
 
 train$Class <- factor(train$Class)
-levels(train$Class) <- c("Fraud", "Genuine")
+levels(train$Class) <- c("Genuine", "Fraud")
 
 
 # Model 1: Logistic Regression --------------------------------------------
@@ -116,6 +116,36 @@ fit <- train(factor(Class) ~.,
 
 results <- round(summary(fit)$coefficients, 3)
 
+predictions <- fit$pred
+
+match <- predictions %>% 
+    mutate(match = case_when(
+        pred == obs ~ 1,
+        TRUE ~ 0
+    ))
+
+# Correct Fraudulant Detections
+fraud <- filter(match, obs == "Fraud")
+sum(match$match) / length(match$match)
+sum(fraud$match) / length(fraud$match)
+
+# False Positive
+fp <- filter(match, obs == "Genuine")
+1 - (sum(fp$match) / length(fp$match))
+
+predictions <- predict(fit, newdata = train)
+actual <- train$Class
+
+temp <- cbind(predictions, actual)
+temp <- data.frame(temp) %>%
+    mutate(match = case_when(
+        predictions == actual ~ 1,
+        TRUE ~ 0
+    ))
+
+sum(temp$match) / length(temp$match)
+
+table(temp$predictions, temp$actual)
 
 # Model 2: Random Forest --------------------------------------------------
 
