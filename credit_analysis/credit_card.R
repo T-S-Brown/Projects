@@ -6,11 +6,13 @@
 library(tidyverse)
 library(caret)
 library(PRROC)
+#library(doParallel)
 
 set.seed(8549)
 
 # Load into memory the source dataset from kaggles
-source <- read.csv("/Users/Thomas/Downloads/creditcard.csv")
+#source <- read.csv("/Users/Thomas/Downloads/creditcard.csv")
+source <- read.csv("D:/Data/creditcard.csv")
 
 # Preview the data
 head(source)
@@ -100,75 +102,203 @@ exploratory_plot + ylim(0, 1)
 train$Class <- factor(train$Class)
 levels(train$Class) <- c("Genuine", "Fraud")
 
+test$Class <- factor(test$Class)
+levels(test$Class) <- c("Genuine", "Fraud")
+
+
+
+# Set up parallel computing for caret
+#cores <- detectCores() - 1
+#print(cores)
+#cl <- makeCluster(cores)
+#registerDoParallel(cl)
+
 
 # Model 1: Logistic Regression --------------------------------------------
 
-model <- glm(Class ~ ., data = train, family = "binomial")
+naive_model <- glm(Class ~ ., data = train, family = "binomial")
 
 
 # Set up a baseline model: Logistic Regression
 
 # Set up 5 fold cross validation
 
-tc <- trainControl("cv", 5,
+glm_tc <- trainControl("cv", 5,
                    savePredictions = TRUE,
                    classProbs = TRUE)
 
 
-fit <- train(factor(Class) ~.,
-             data      = train    ,
-             method    = "glm"    ,
-             family    = binomial ,
-             trControl = tc,
-             na.action = na.omit)
-
-results <- round(summary(fit)$coefficients, 3)
-
-predictions <- fit$pred
-
-match <- predictions %>% 
-    mutate(match = case_when(
-        pred == obs ~ 1,
-        TRUE ~ 0
-    ))
-
-# Correct Fraudulant Detections
-fraud <- filter(match, obs == "Fraud")
-sum(match$match) / length(match$match)
-sum(fraud$match) / length(fraud$match)
-
-# False Positive
-fp <- filter(match, obs == "Genuine")
-1 - (sum(fp$match) / length(fp$match))
-
-predictions <- predict(fit, newdata = train)
-actual <- train$Class
-
-temp <- cbind(predictions, actual)
-temp <- data.frame(temp) %>%
-    mutate(match = case_when(
-        predictions == actual ~ 1,
-        TRUE ~ 0
-    ))
-
-sum(temp$match) / length(temp$match)
-
-table(temp$predictions, temp$actual)
+glm_mod <- train(Class ~ .,
+             data      = train,
+             method    = "glm",
+             family    = binomial,
+             trControl = glm_tc)
 
 
-# Model has been fit: results AUPRC
+# Save Results, coefficients and fitted probabilities
 
-# Extract fitted probabilities
-logistic_probs <- fit$finalModel$fitted.values
+# COeficients
+glm_coefs <- round(summary(glm_mod)$coefficients, 3)
 
-logistic_auprc <- pr.curve(fit$pred$pred, fit$pred$obs)
+# Fitted Probabilities
+glm_probs <- glm_mod$finalModel$fitted.values
+
+
+# Calculate AUPRC
+glm0 <- glm_probs[as.numeric(train$Class) - 1 == 0]
+glm1 <- glm_probs[as.numeric(train$Class) - 1 == 1]
+
+glm_auprc <- pr.curve(glm1, glm0, curve = TRUE)
+plot(glm_auprc)
+
 
 # Model 2: Random Forest --------------------------------------------------
 
+rf_tc <- trainControl("cv", 5,
+                      savePredictions = TRUE,
+                      classProbs = TRUE,
+                      verboseIter = TRUE,
+                      sampling = "down")
+
+rf_grid <- expand.grid(mtry = 5)
+
+rf_mod <- train(Class ~ .,
+                data = train,
+                method = "rf",
+                metric = "Kappa",
+                tuneGrid = rf_grid,
+                trControl = rf_tc)
+
+# Fitted Probabilities
+rf_probs <- predict(rf_mod, newdata = train, type = "prob")[2]
+
+# Calculate AUPRC
+rf0 <- rf_probs[as.numeric(train$Class) - 1 == 0,]
+rf1 <- rf_probs[as.numeric(train$Class) - 1 == 1,]
+
+
+rf_auprc <- pr.curve(rf1, rf0, curve = TRUE)
+plot(rf_auprc)
 
 # Model 3: Support Vector Machine -----------------------------------------
 
+svm_tc <- trainControl("cv", 5,
+                       savePredictions = TRUE,
+                       classProbs = TRUE,
+                       verboseIter = TRUE,
+                       sampling = "down",
+                       search = "random")
+
+svm_mod <- train(Class ~.,
+                 data = train,
+                 method = "svmRadial",
+                 metric = "Kappa",
+                 trControl = svm_tc)
+
+# Fitted probabilities
+svm_probs <- predict(svm_mod, newdata = train, type = "prob")[2]
+
+svm0 <- svm_probs[as.numeric(train$Class) - 1 == 0,]
+svm1 <- svm_probs[as.numeric(train$Class) - 1 == 1,]
+
+svm_auprc <- pr.curve(svm1, svm0, curve = TRUE)
+plot(svm_auprc)
+
+
 
 # Model 4: Gradient Boosting ----------------------------------------------
+
+
+boost_tc <- trainControl("cv", 5,
+                         savePredictions = TRUE,
+                         classProbs = TRUE,
+                         verboseIter = TRUE,
+                         sampling = "down",
+                         search = "random")
+
+boost_mod <- train(Class ~.,
+                 data = train,
+                 method = "adaboost",
+                 metric = "Kappa",
+                 trControl = boost_tc)
+
+# Fitted probabilities
+boost_probs <- predict(boost_mod, newdata = train, type = "prob")[2]
+
+boost0 <- boost_probs[as.numeric(train$Class) - 1 == 0,]
+boost1 <- boost_probs[as.numeric(train$Class) - 1 == 1,]
+
+boost_auprc <- pr.curve(boost1, boost0, curve = TRUE)
+plot(boost_auprc)
+
+
+
+
+# Model Comparison --------------------------------------------------------
+
+
+train_results <- resamples(list(glm = glm_mod,
+                                rf = rf_mod,
+                                svm = svm_mod,
+                                boost = boost_mod))
+
+summary(train_results)
+
+bwplot(train_results)
+
+
+glm_outcomes <- data.frame(confusionMatrix(data = glm_mod$pred$pred, reference = train$Class)$table) %>%
+  mutate(model = "Logistic Regression")
+
+rf_outcomes <- data.frame(confusionMatrix(data = rf_mod$pred$pred, reference = train$Class)$table) %>% 
+  mutate(model = "Random Forest")
+
+svm_outcomes <- data.frame(confusionMatrix(data = predict(svm_mod, newdata = train), reference = train$Class)$table) %>% 
+  mutate(model = "Support Vector Machine")
+
+boost_outcomes <- data.frame(confusionMatrix(data = predict(boost_mod, newdata = train), reference = train$Class)$table) %>% 
+  mutate(model = "Gradient Boosting")
+
+
+combined_results <- bind_rows(glm_outcomes, rf_outcomes, svm_outcomes, boost_outcomes)
+
+
+
+ggplot(data = combined_results, aes(x = Reference, y = reorder(Prediction, desc(Prediction)), fill = Freq / sum(Freq))) +
+  geom_tile() +
+  geom_text(aes(label = Freq), col = "white") +
+  labs(x = "Observed",
+       y = "Predicted",
+       fill = "Proportion",
+       title = "Confusion Matrix") +
+  theme(panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5)) +
+  facet_wrap(~model)
+ 
+
+# Test Evaluation ---------------------------------------------------------
+
+
+# From the confustion matrix, we are going to use Gradient Boosting
+
+test_results <- predict(boost_mod, newdata = test, type = "raw")
+test_probs <- predict(boost_mod, newdata = test, type = "prob")
+
+
+# Confusion Matrix
+
+test_values <- data.frame(confusionMatrix(data = test_results, reference = test$Class)$table)
+
+
+
+ggplot(data = test_values, aes(x = Reference, y = reorder(Prediction, desc(Prediction)), fill = Freq / sum(Freq))) +
+  geom_tile() +
+  geom_text(aes(label = Freq), col = "white") +
+  labs(x = "Observed",
+       y = "Predicted",
+       fill = "Proportion",
+       title = "Confusion Matrix") +
+  theme(panel.background = element_blank(),
+        plot.title = element_text(hjust = 0.5))
 
 
