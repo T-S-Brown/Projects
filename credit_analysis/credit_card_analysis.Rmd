@@ -5,21 +5,41 @@ date: "24 February 2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Credit Card Fraud Detection
 
+This analysis uses the credit card fraud detection dataset available on [kaggle](https://www.kaggle.com/mlg-ulb/creditcardfraud).
+
+The goal is to construct a machine learning model that has a reasonable predictive abilitity in determining whether a credit card transaction is genuine or fraudulant.
+```{r pressure, echo=FALSE, message=FALSE}
 
 
-```{r prep, message=FALSE, warning=FALSE}
 ```
 
 
+We will start by loading the packages that will be used for this analysis, setting up a seed for reproducability and reading in the data.
+```{r prep, message=FALSE, warning=FALSE}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+library(tidyverse)
+library(caret)
+library(PRROC)
+
+set.seed(8549)
+
+source <- read.csv("D:/Data/creditcard.csv")
+
+```
+
+
+Let's preview the first couple of observations from the dataset.
+```{r head, echo=FALSE, message=FALSE}
+
+head(source)
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
