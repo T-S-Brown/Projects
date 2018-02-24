@@ -5,12 +5,12 @@
   
 library(tidyverse)
 library(caret)
+library(PRROC)
 
 set.seed(8549)
 
 # Load into memory the source dataset from kaggles
 source <- read.csv("/Users/Thomas/Downloads/creditcard.csv")
-
 
 # Preview the data
 head(source)
@@ -43,6 +43,14 @@ rm(source)
 descriptives <- train %>%
     group_by(Class) %>% 
     summarise_all(mean)
+
+# Need to standardise time and amount. Others done via PCA
+train$Time <- (train$Time - mean(train$Time)) / sd(train$Time)
+train$Amount <- (train$Amount - mean(train$Amount)) / sd(train$Amount)
+
+# Prep the test data to
+test$Time <- (test$Time - mean(train$Time)) / sd(train$Time)
+test$Amount <- (test$Amount - mean(train$Amount)) / sd(train$Amount)
 
 
 # Quick and Dirty Evaluation of the principal components - correlation plot
@@ -95,7 +103,7 @@ levels(train$Class) <- c("Genuine", "Fraud")
 
 # Model 1: Logistic Regression --------------------------------------------
 
-
+model <- glm(Class ~ ., data = train, family = "binomial")
 
 
 # Set up a baseline model: Logistic Regression
@@ -146,6 +154,14 @@ temp <- data.frame(temp) %>%
 sum(temp$match) / length(temp$match)
 
 table(temp$predictions, temp$actual)
+
+
+# Model has been fit: results AUPRC
+
+# Extract fitted probabilities
+logistic_probs <- fit$finalModel$fitted.values
+
+logistic_auprc <- pr.curve(fit$pred$pred, fit$pred$obs)
 
 # Model 2: Random Forest --------------------------------------------------
 
