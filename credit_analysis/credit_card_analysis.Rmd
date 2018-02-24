@@ -1,0 +1,25 @@
+---
+title: "Credit Card Fraud Detection"
+author: "Thomas Brown"
+date: "24 February 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Credit Card Fraud Detection
+
+
+
+```{r prep, message=FALSE, warning=FALSE}
+```
+
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
