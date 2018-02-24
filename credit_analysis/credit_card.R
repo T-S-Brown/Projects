@@ -6,11 +6,10 @@
 library(tidyverse)
 library(caret)
 library(PRROC)
-#library(doParallel)
 
 set.seed(8549)
 
-# Load into memory the source dataset from kaggles
+# Load into memory the source dataset from kaggle
 #source <- read.csv("/Users/Thomas/Downloads/creditcard.csv")
 source <- read.csv("D:/Data/creditcard.csv")
 
