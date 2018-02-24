@@ -2,7 +2,7 @@
 title: "Credit Card Fraud Detection"
 author: "Thomas Brown"
 date: "24 February 2018"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
