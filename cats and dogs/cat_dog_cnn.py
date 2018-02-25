@@ -154,5 +154,5 @@ plt.legend()
 plt.show()
 
 
-
+os.chdir('C:/Users/Thomas/Dropbox/Data Science/Projects/cats and dogs')
 model.save('cats_vs_dogs_model.h5')
