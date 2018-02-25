@@ -3,6 +3,8 @@
 # Thomas Brown
 #------------------------------#
   
+
+# Load the required datasets and set seed for reproducibility
 library(tidyverse)
 library(caret)
 library(PRROC)
@@ -10,7 +12,7 @@ library(PRROC)
 set.seed(8549)
 
 # Load into memory the source dataset from kaggle
-#source <- read.csv("/Users/Thomas/Downloads/creditcard.csv")
+# https://www.kaggle.com/mlg-ulb/creditcardfraud
 source <- read.csv("D:/Data/creditcard.csv")
 
 # Preview the data
