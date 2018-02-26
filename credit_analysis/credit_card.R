@@ -133,7 +133,8 @@ glm_mod <- train(Class ~ .,
              data      = train,
              method    = "glm",
              family    = binomial,
-             trControl = glm_tc)
+             trControl = glm_tc,
+             na.action = na.omit)
 
 
 # Save Results, coefficients and fitted probabilities
@@ -275,6 +276,8 @@ ggplot(data = combined_results, aes(x = Reference, y = reorder(Prediction, desc(
   theme(panel.background = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   facet_wrap(~model)
+
+ggsave(filename = "C:/Users/Thomas/Dropbox/Data Science/Projects/credit_analysis/model_result_comparisons.png")
  
 
 # Test Evaluation ---------------------------------------------------------
