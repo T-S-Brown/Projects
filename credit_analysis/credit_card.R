@@ -107,23 +107,13 @@ test$Class <- factor(test$Class)
 levels(test$Class) <- c("Genuine", "Fraud")
 
 
-
-# Set up parallel computing for caret
-#cores <- detectCores() - 1
-#print(cores)
-#cl <- makeCluster(cores)
-#registerDoParallel(cl)
-
-
 # Model 1: Logistic Regression --------------------------------------------
-
-naive_model <- glm(Class ~ ., data = train, family = "binomial")
 
 
 # Set up a baseline model: Logistic Regression
 
 # Set up 5 fold cross validation
-
+ 
 glm_tc <- trainControl("cv", 5,
                    savePredictions = TRUE,
                    classProbs = TRUE)
@@ -134,7 +124,8 @@ glm_mod <- train(Class ~ .,
              method    = "glm",
              family    = binomial,
              trControl = glm_tc,
-             na.action = na.omit)
+             na.action = na.omit,
+             control = list(maxit = 100))
 
 
 # Save Results, coefficients and fitted probabilities
