@@ -56,7 +56,7 @@ test$Time <- (test$Time - mean(train$Time)) / sd(train$Time)
 test$Amount <- (test$Amount - mean(train$Amount)) / sd(train$Amount)
 
 
-# Quick and Dirty Evaluation of the principal components - correlation plot
+# Quick exploratory plot of the principal components - correlations
 
 correlations <- train %>% 
     summarize_all(funs(cor(., train$Class))) %>% 
@@ -90,6 +90,11 @@ exploratory_plot <- ggplot(data = correlations, aes(x = feature, y = magnitude, 
     theme(plot.title = element_text(hjust = 0.5))
 
 exploratory_plot
+
+
+# Setting the bounds to the limits of the absolute value of a
+# correlation coefficient graphically provides are 'truer' depection
+# of the associations
 
 exploratory_plot + ylim(0, 1)
 
@@ -146,6 +151,7 @@ plot(glm_auprc)
 
 
 # Model 2: Random Forest --------------------------------------------------
+
 
 rf_tc <- trainControl("cv", 5,
                       savePredictions = TRUE,
