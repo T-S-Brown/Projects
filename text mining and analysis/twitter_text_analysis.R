@@ -65,4 +65,16 @@ word_freqs <- key_tweet_data %>%
 # Plot a word cloud
 wordcloud(word_freqs$word, word_freqs$n, max.words = 30)
 
+# Sentiment Analysis
+get_sentiments("afinn")
+get_sentiments("bing")
+get_sentiments("nrc")
 
+
+# Find the 'joy' words
+
+nrc_joy <- get_sentiments("nrc") %>% 
+    filter(sentiment == 'joy')
+
+joy_words <- inner_join(key_tweet_data, nrc_joy, by = "word") %>% 
+    count(tweetID, sort = TRUE)
