@@ -73,5 +73,5 @@ if (!dir.exists(file.path(paste0(dirname(rstudioapi::getSourceEditorContext()$pa
   dir.create('data')
 }
 
-key_price_data <- write_csv(core_data, )
+write_csv(core_data, "data/key_price_data.csv")
     
