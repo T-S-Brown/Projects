@@ -19,7 +19,9 @@ source('load_api_keys.R')
 
 
 # Specify the vector of codes to analysis
-equity_codes <- c("GSK.L", "LLOY.L", "LGEN.L")
+equity_codes <- c("GSK.L", "LLOY.L", "LGEN.L", "AZN.L")
+
+
 
 # Extract the full or compact list
 size <- 'full' # Valid options of 'full' or 'compact'
@@ -62,6 +64,7 @@ print('Key price and volume data loaded')
 
 core_data <- core_data %>%
   group_by(code) %>% 
+  arrange(code, timestamp) %>% 
   mutate(pct10_threshold = close * 0.1,
          diff = close - lead(close, 90),
          sustained = rollmean(diff, 30, fill = NA),
@@ -69,8 +72,22 @@ core_data <- core_data %>%
   ungroup()
 
 
-if (!dir.exists(file.path(paste0(dirname(rstudioapi::getSourceEditorContext()$path),'/data)')))){
+#-------------------------------------------#
+# Derive key features
+#-------------------------------------------#
+
+core_data <- core_data %>%
+  group_by(code) %>% 
+  mutate(d30_rmean = rollmean(close, 30, fill = NA),
+         d90_rmean = rollmean(close, 90, fill = NA),
+         pct_chg = close/lag(close, n = 1) - 1,
+         d30p_rmean = rollmean(pct_chg, 30, fill = NA),
+         d90p_rmean = rollmean(pct_chg, 90, fill = NA))
+
+if (!dir.exists(paste0(getwd(),'/data'))){
   dir.create('data')
+} else {
+  print('Directory already exists')
 }
 
 write_csv(core_data, "data/key_price_data.csv")
