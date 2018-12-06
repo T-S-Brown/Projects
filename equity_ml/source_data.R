@@ -9,6 +9,9 @@
 
 # Load the required packages
 library(tidyverse)
+library(forecast)
+library(TTR)
+library(tidyquant)
 
 # Set the working directory
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
@@ -66,9 +69,11 @@ core_data <- core_data %>%
   group_by(code) %>% 
   arrange(code, timestamp) %>% 
   mutate(pct10_threshold = close * 0.1,
-         diff = close - lead(close, 90),
+         pct20_threshold = close * 0.2,
+         diff = close - lead(close, 120),
          sustained = rollmean(diff, 30, fill = NA),
-         target = ifelse(sustained > pct10_threshold, 1, 0)) %>% 
+         target1 = ifelse(sustained > pct10_threshold, 1, 0),
+         target2 = ifelse(diff > pct20_threshold, 1, 0)) %>% 
   ungroup()
 
 
@@ -82,7 +87,28 @@ core_data <- core_data %>%
          d90_rmean = rollmean(close, 90, fill = NA),
          pct_chg = close/lag(close, n = 1) - 1,
          d30p_rmean = rollmean(pct_chg, 30, fill = NA),
-         d90p_rmean = rollmean(pct_chg, 90, fill = NA))
+         d90p_rmean = rollmean(pct_chg, 90, fill = NA)) %>%
+  ungroup()
+
+
+#-------------------------------------------#
+# Derive key technical indicators
+#-------------------------------------------#
+
+core_data <- core_data %>%
+  group_by(code) %>% 
+  mutate(spo = rollmean(close, 200, fill = NA) - rollmean(close, 30, fill = NA),
+         epo = EMA(close, 200) - EMA(close, 30),
+         tp = (high + low + close) / 3,
+         aroon_up = aroon(close, 30)[,1],
+         aroon_down = aroon(close, 30)[,2])
+
+core_data = tq_mutate(data = core_data, select = c(high, low, close), mutate_fun = CCI)
+
+
+#-------------------------------------------#
+# Save the data data
+#-------------------------------------------#
 
 if (!dir.exists(paste0(getwd(),'/data'))){
   dir.create('data')
