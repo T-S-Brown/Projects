@@ -1,0 +1,3 @@
+[submodule "coursera/dlaicourse"]
+	path = coursera/dlaicourse
+	url = https://github.com/lmoroney/dlaicourse
