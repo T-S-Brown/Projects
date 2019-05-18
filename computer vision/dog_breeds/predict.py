@@ -16,5 +16,5 @@ img = open_image(IMAGE_FILE)
 learn = load_learner(MODEL_PATH)
 
 # Make predictions
-pred_class,pred_idx,outputs = learn.predict(img)
+pred_class, pred_idx, outputs = learn.predict(img)
 print(pred_class)
