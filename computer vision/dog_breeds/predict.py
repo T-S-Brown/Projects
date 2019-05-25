@@ -8,8 +8,8 @@ from fastai.vision import *
 defaults.device = torch.device('cpu')
 
 # Constants
-MODEL_PATH = ''
-IMAGE_FILE = 'path/'black'/'00000021.jpg''
+MODEL_PATH = '/Users/thomas/Dropbox (Personal)/Data Science/Projects/computer vision/dog_breeds'
+IMAGE_FILE = '/Users/thomas/Desktop/img1.jpg'
 
 # Load the required files
 img = open_image(IMAGE_FILE)

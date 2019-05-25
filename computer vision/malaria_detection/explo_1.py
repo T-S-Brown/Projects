@@ -1,11 +1,11 @@
 # Malaria Cell Detection
 
 # Module Imports
-from fastai.vision import *
+# from fastai.vision import *
 
 # Check Installation 
-from fastai.utils import *
-show_install()
+# from fastai.utils import *
+# show_install()
 
 import numpy as np
 
